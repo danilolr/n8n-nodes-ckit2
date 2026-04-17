@@ -1,29 +1,36 @@
 {
     "name": "@chatbot-kit/n8n-nodes-ckit2",
     "version": "0.1.0",
-    "description": "",
+    "description": "Next-generation Chatbot Kit nodes for n8n",
+    "main": "dist/nodes/CKit2/CKit2.node.js",
     "license": "MIT",
-    "homepage": "",
+    "homepage": "https://github.com/danilolr/n8n-nodes-ckit2#readme",
     "keywords": [
-        "n8n-community-node-package"
+        "n8n-community-node-package",
+        "n8n",
+        "chatbot-kit",
+        "chatbot"
     ],
-    "author": {
-        "name": "Danilo Luiz Rheinheimer",
-        "email": "danilolr@gmail.com"
+    "private": false,
+    "publishConfig": {
+        "access": "public"
     },
+    "author": "Danilo Luiz Rheinheimer <danilolr@gmail.com>",
     "repository": {
         "type": "git",
-        "url": "https://github.com/<...>/n8n-nodes-<...>.git"
+        "url": "git+https://github.com/danilolr/n8n-nodes-ckit2.git"
     },
-   "scripts": {
-		"build": "n8n-node build",
-		"build:watch": "tsc --watch",
-		"dev": "n8n-node dev",
-		"lint": "n8n-node lint",
-		"lint:fix": "n8n-node lint --fix",
-		"release": "n8n-node release",
-		"prepublishOnly": "n8n-node prerelease"
-	},
+    "scripts": {
+        "build": "n8n-node build",
+        "build:watch": "tsc --watch",
+        "dev:prepare": "./scripts/prepare-dev-package.sh",
+        "dev": "npm run build && npm run dev:prepare && npm run build:watch",
+        "dev:n8n": "./scripts/dev-n8n.sh",
+        "lint": "n8n-node lint",
+        "lint:fix": "n8n-node lint --fix",
+        "release": "n8n-node release",
+        "prepublishOnly": "n8n-node prerelease"
+    },
     "files": [
         "dist"
     ],
@@ -32,7 +39,7 @@
         "strict": true,
         "credentials": [],
         "nodes": [
-            "dist/nodes/Example/Example.node.js"
+            "dist/nodes/CKit2/CKit2.node.js"
         ]
     },
     "devDependencies": {

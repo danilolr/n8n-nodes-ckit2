@@ -10,6 +10,8 @@ Thumbs.db
 
 .n8n/
 .n8n-node-cli/
+.n8n-dev-package/
+.n8n-runner/
 
 .coverage/
 coverage/
