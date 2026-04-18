@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow'
 
 export const propertiesContextSet: INodeProperties[] = [
 	{
@@ -40,4 +40,4 @@ export const propertiesContextSet: INodeProperties[] = [
 			},
 		],
 	},
-];
+]

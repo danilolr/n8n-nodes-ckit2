@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow'
 
 export const propertiesIntent: INodeProperties[] = [
 	{
@@ -57,4 +57,4 @@ export const propertiesIntent: INodeProperties[] = [
 			},
 		],
 	},
-];
+]

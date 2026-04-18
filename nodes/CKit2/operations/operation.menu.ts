@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow'
 
 export const propertiesMenu: INodeProperties[] = [
 	{
@@ -111,4 +111,4 @@ export const propertiesMenu: INodeProperties[] = [
 			},
 		],
 	},
-];
+]

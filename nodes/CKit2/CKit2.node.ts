@@ -3,25 +3,25 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
-} from 'n8n-workflow';
-import { propertiesAdvisor } from './operations/operation.advisor';
-import { configureOutputs } from './config.outputs';
-import { propertiesApi } from './operations/operation.api';
-import { propertiesChatbot } from './operations/operation.chatbot';
-import { propertiesContact } from './operations/operation.contact';
-import { propertiesContextGet } from './operations/operation.context.get';
-import { propertiesContextSet } from './operations/operation.context.set';
-import { propertiesEnd } from './operations/operation.end';
-import { propertiesIntent } from './operations/operation.intent';
-import { propertiesIntentAction } from './operations/operation.intent.action';
-import { propertiesIntentActionBuild } from './operations/operation.intent.action.build';
-import { propertiesMain } from './operations/operation.main';
-import { propertiesMenu } from './operations/operation.menu';
-import { propertiesMessage } from './operations/operation.message';
-import { propertiesPage } from './operations/operation.page';
-import { propertiesTransfer } from './operations/operation.transfer';
-import { propertiesWait } from './operations/operation.wait';
-import { getOperationProperties, getResourceOptions } from './resources';
+} from 'n8n-workflow'
+import { propertiesAdvisor } from './operations/operation.advisor'
+import { configureOutputs } from './config.outputs'
+import { propertiesApi } from './operations/operation.api'
+import { executeOperationChatbot, propertiesChatbot } from './operations/operation.chatbot'
+import { propertiesContact } from './operations/operation.contact'
+import { propertiesContextGet } from './operations/operation.context.get'
+import { propertiesContextSet } from './operations/operation.context.set'
+import { propertiesEnd } from './operations/operation.end'
+import { propertiesIntent } from './operations/operation.intent'
+import { propertiesIntentAction } from './operations/operation.intent.action'
+import { propertiesIntentActionBuild } from './operations/operation.intent.action.build'
+// import { propertiesMain } from './operations/operation.main';
+import { propertiesMenu } from './operations/operation.menu'
+import { propertiesMessage } from './operations/operation.message'
+// import { propertiesPage } from './operations/operation.page';
+import { propertiesTransfer } from './operations/operation.transfer'
+import { propertiesWait } from './operations/operation.wait'
+import { getOperationProperties, getResourceOptions } from './resources'
 
 export class CKit2 implements INodeType {
 	description: INodeTypeDescription = {
@@ -62,35 +62,23 @@ export class CKit2 implements INodeType {
 			...propertiesIntentActionBuild,
 			...propertiesIntentAction,
 			...propertiesIntent,
-			...propertiesMain,
+			// ...propertiesMain,
 			...propertiesMenu,
 			...propertiesMessage,
-			...propertiesPage,
+			// ...propertiesPage,
 			...propertiesTransfer,
 			...propertiesWait,
 		],
-	};
+	}
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const items = this.getInputData();
-		const returnData: INodeExecutionData[] = [];
+		const items = this.getInputData()
+		this.logger.debug(JSON.stringify(items))
 
-		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-			const resource = this.getNodeParameter('resource', itemIndex, '') as string;
-			const operation = this.getNodeParameter('operation', itemIndex, '') as string;
+		const resource = this.getNodeParameter('resource', 0, '') as string
+		const operation = this.getNodeParameter('operation', 0) as string
+		this.logger.warn(`Resource: ${resource} - Operation: ${operation} - Not implemented yet`)
 
-			returnData.push({
-				json: {
-					...items[itemIndex].json,
-					node: 'CKit2',
-					resource,
-					operation,
-					status: 'not-implemented',
-				},
-				pairedItem: { item: itemIndex },
-			});
-		}
-
-		return [returnData];
+		return executeOperationChatbot(this)
 	}
 }

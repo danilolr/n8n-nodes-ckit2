@@ -1,17 +1,17 @@
-import type { INodeProperties, INodePropertyCollection, INodePropertyOptions } from 'n8n-workflow';
+import type { INodeProperties, INodePropertyCollection, INodePropertyOptions } from 'n8n-workflow'
 
 type OperationDefinition = {
-	name: string;
-	value: string;
-	description?: string;
-	action: string;
-};
+	name: string
+	value: string
+	description?: string
+	action: string
+}
 
 type ResourceDefinition = {
-	name: string;
-	value: string;
-	operations: OperationDefinition[];
-};
+	name: string
+	value: string
+	operations: OperationDefinition[]
+}
 
 const resources: ResourceDefinition[] = [
 	{
@@ -101,12 +101,12 @@ const resources: ResourceDefinition[] = [
 		name: 'Config',
 		value: 'config',
 		operations: [
-			{
-				name: 'CKit',
-				value: 'ckit',
-				description: 'CKit operation',
-				action: 'CKit',
-			},
+			// {
+			// 	name: 'CKit',
+			// 	value: 'ckit',
+			// 	description: 'CKit operation',
+			// 	action: 'CKit',
+			// },
 			{
 				name: 'Chatbot',
 				value: 'chatbot',
@@ -168,13 +168,15 @@ const resources: ResourceDefinition[] = [
 			},
 		],
 	},
-];
+]
 
-export function getResourceOptions(): Array<INodePropertyOptions | INodeProperties | INodePropertyCollection> {
+export function getResourceOptions(): Array<
+	INodePropertyOptions | INodeProperties | INodePropertyCollection
+> {
 	return resources.map((resource) => ({
 		name: resource.name,
 		value: resource.value,
-	}));
+	}))
 }
 
 export function getOperationProperties(): INodeProperties[] {
@@ -195,5 +197,5 @@ export function getOperationProperties(): INodeProperties[] {
 			action: operation.action,
 		})),
 		default: '',
-	}));
+	}))
 }

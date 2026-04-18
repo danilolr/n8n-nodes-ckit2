@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow';
+import type { INodeProperties } from 'n8n-workflow'
 
 export const propertiesWait: INodeProperties[] = [
 	{
@@ -14,4 +14,4 @@ export const propertiesWait: INodeProperties[] = [
 			},
 		},
 	},
-];
+]

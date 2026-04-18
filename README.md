@@ -16,6 +16,43 @@ Current status:
 - Initial node placeholder registered
 - Final resources, operations, credentials, and compatibility details still being defined
 
+## Local Testing
+
+Use two terminals during development.
+
+Terminal 1:
+
+```bash
+npm run dev
+```
+
+This command:
+
+- builds the node
+- prepares a clean development package in `.n8n-dev-package`
+- starts TypeScript watch mode
+
+Terminal 2:
+
+```bash
+npm run dev:n8n
+```
+
+This command:
+
+- prepares the clean development package again
+- starts a dedicated local `n8n` runner using the same user folder at `.n8n-node-cli`
+
+### Testing after changes
+
+If you changed TypeScript files in the node:
+
+1. keep `npm run dev` running
+2. run `npm run dev:prepare`
+3. restart `npm run dev:n8n`
+
+You usually do not need to restart `npm run dev` unless you changed development scripts, package metadata, or the local development setup itself.
+
 ## Resources
 
 - [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)

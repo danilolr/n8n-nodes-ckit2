@@ -2,7 +2,7 @@ module.exports = {
 	/**
 	 * https://prettier.io/docs/en/options.html#semicolons
 	 */
-	semi: true,
+	semi: false,
 
 	/**
 	 * https://prettier.io/docs/en/options.html#trailing-commas
@@ -48,4 +48,4 @@ module.exports = {
 	 * https://prettier.io/docs/en/options.html#print-width
 	 */
 	printWidth: 100,
-};
+}
