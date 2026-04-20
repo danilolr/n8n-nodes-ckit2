@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow'
+import type { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
 
 export const propertiesContextGet: INodeProperties[] = [
 	{
@@ -27,3 +27,7 @@ export const propertiesContextGet: INodeProperties[] = [
 		},
 	},
 ]
+	
+export async function executeOperationGetContext(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+	return []		
+}

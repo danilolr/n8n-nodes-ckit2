@@ -5,7 +5,10 @@ import {
 	type INodeExecutionData,
 	type INodeProperties,
 } from 'n8n-workflow'
-import { buildStdMessageFromData, MessageData, putApiInfoInMemory } from '../ckit_model'
+import { buildStdMessage, MessageData, putApiInfoInMemory } from '../ckit_model'
+import { callBackend } from '../callback_utils'
+import { CKitMemoryService } from '../ckit_db'
+import { ConversationInfo } from '../ckit_chatbot_info_memory'
 
 export const propertiesChatbot: INodeProperties[] = [
 	{
@@ -115,80 +118,71 @@ export const propertiesChatbot: INodeProperties[] = [
 	},
 ]
 
-export async function executeOperationChatbot(
-	self: IExecuteFunctions,
-): Promise<INodeExecutionData[][]> {
-	self.logger.debug('EXECUTE CB')
-	let onWebResponse: INodeExecutionData[] = []
-	let onMessage: INodeExecutionData[] = []
-	const onGetAdvisor: INodeExecutionData[] = []
-
-	const input = self.getInputData(0)[0] as INodeExecutionData
-
-	const resource = self.getNodeParameter('resource', 0, '') as string
-	const operation = self.getNodeParameter('operation', 0) as string
-	self.logger.warn(`Resource: ${resource} - Operation: ${operation} - Not implemented yet`)
-
-	if (input.json.body) {
-		const requestType = (input.json['body'] as IDataObject)?.['type'] as string
-		if (requestType == 'onStartConversation') {
-			({ onWebResponse, onMessage } = onStartConversation(self, input))
-		} else {
-			throw new NodeOperationError(self.getNode(), 'Unknown request type', {})
-		}
-	}
-
-	return [onWebResponse, onMessage, onGetAdvisor]
-}
-
 function processOnStartConversation(self: IExecuteFunctions, userIdentifier: string, channelType: string, message: MessageData): INodeExecutionData[] {
-	self.logger.info("processOnStartConversation ")
-	const stdMsg = buildStdMessageFromData(self, "executeChatbot", {
-		"message": {
-			"msgType": message.msgType,
-			"text": message.text,
-		},
-		"userIdentifier": userIdentifier,
-		"channelType": channelType,
-	})
+	self.logger.info("processOnStartConversation")
+	const stdMsg = buildStdMessage(self, "executeChatbot")
 	return [{
 		json: stdMsg.toJson()
 	}]
 }
 
-function onStartConversation(
+async function onStartConversation(
 	self: IExecuteFunctions,
 	input: INodeExecutionData,
-): { onWebResponse: INodeExecutionData[]; onMessage: INodeExecutionData[] } {
+): Promise<INodeExecutionData[]> {
 	const body = input.json['body'] as IDataObject
 	const payload = body['payload'] as IDataObject
 	const env = (payload['callerContext'] as IDataObject)['env'] as string
 
 	self.logger.info(`CKitChatbot onStartConversation ------------------------------------`)
 	self.logger.info(`CKitChatbot env: ${env}`)
+	self.logger.info(JSON.stringify(input))
 
 	putApiInfoInMemory(self, env)
-	// setMainUuidInMemory(self, (payload['context'] as IDataObject)['uuid'] as string)
-	// let onWebResponse: INodeExecutionData[] = []
 
-	// const executionMemory = CKitMemoryService.getExecutionMemory(self)
-	// const conversation = new ConversationInfo(self.getExecutionId(), (payload['context'] as IDataObject)['uuid'] as string)
-	// executionMemory.write("conversation", conversation)
-	// conversation.setContextVar(self, "userIdentifier", (payload['context'] as IDataObject)['userIdentifier'] as string)
-	// conversation.setContextVar(self, "channelType", (payload['context'] as IDataObject)['channelType'] as string)
-	// conversation.setContextVar(self, "contact", (payload['context'] as IDataObject)['contact'] as IDataObject)
+	const param = payload['param'] as IDataObject
+
+	const executionMemory = CKitMemoryService.getExecutionMemory(self)
+	executionMemory.write("callerContext", payload['callerContext'] as IDataObject)
+	executionMemory.write("contact", payload['contact'] as IDataObject)
+	executionMemory.write("channel", payload['channel'] as IDataObject)
+	executionMemory.write("context", payload['context'] as IDataObject)
+	executionMemory.write("lastUserMessage", param['message'] as IDataObject)
+
+	const conversationUuid = (payload['callerContext'] as IDataObject)['uuid'] as string
+	const conversation = new ConversationInfo(self.getExecutionId(), conversationUuid)
+	executionMemory.write("conversation", conversation)
 	const message: MessageData = new MessageData("TEXT", (payload['param'] as IDataObject)['mensagem'] as string)
 	const onMessage = processOnStartConversation(self, (payload['context'] as IDataObject)['userIdentifier'] as string, (payload['context'] as IDataObject)['channelType'] as string, message)
-	self.logger.info(`CKitChatbot ->` + input.json['webhookUrl'])
-	self.logger.info(JSON.stringify(input))
-	const onWebResponse = [
-		{
-			json: {
-				ok: true,
-				workflowId: self.getExecutionId(),
-				callbackUrl: input.json?.webhookUrl as string,
-			},
-		},
-	]
-	return { onWebResponse, onMessage } // onChatbot
+
+	self.logger.info("Will call backend: " + conversationUuid)
+	const callbackParams = {
+		"executionId": self.getExecutionId(),
+	}
+	await callBackend(self, "setExecutionId", callbackParams)
+
+	return onMessage 
+}
+
+export async function executeOperationChatbot(
+	self: IExecuteFunctions,
+): Promise<INodeExecutionData[][]> {
+	self.logger.debug('EXECUTE CB')
+	let onMessage: INodeExecutionData[] = []
+	let onGetAdvisor: INodeExecutionData[] = []
+
+	const input = self.getInputData(0)[0] as INodeExecutionData
+
+	if (input.json.body) {
+		const requestType = (input.json['body'] as IDataObject)?.['type'] as string
+		if (requestType == 'onStartConversation') {
+			onMessage = await onStartConversation(self, input)
+		} else if (requestType == 'onAdvisor') {
+			// onGetAdvisor = onAdvisor(self, input)
+		} else {
+			throw new NodeOperationError(self.getNode(), 'Unknown request type', {})
+		}
+	}
+
+	return [onMessage, onGetAdvisor]
 }

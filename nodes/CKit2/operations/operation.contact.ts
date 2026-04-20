@@ -1,4 +1,4 @@
-import type { INodeProperties } from 'n8n-workflow'
+import type { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
 
 export const propertiesContact: INodeProperties[] = [
 	{
@@ -63,3 +63,7 @@ export const propertiesContact: INodeProperties[] = [
 		},
 	},
 ]
+
+export async function executeOperationContact(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+	return []	
+}

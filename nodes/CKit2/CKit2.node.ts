@@ -6,21 +6,19 @@ import type {
 } from 'n8n-workflow'
 import { propertiesAdvisor } from './operations/operation.advisor'
 import { configureOutputs } from './config.outputs'
-import { propertiesApi } from './operations/operation.api'
+import { executeOperationApi, propertiesApi } from './operations/operation.api'
 import { executeOperationChatbot, propertiesChatbot } from './operations/operation.chatbot'
-import { propertiesContact } from './operations/operation.contact'
-import { propertiesContextGet } from './operations/operation.context.get'
-import { propertiesContextSet } from './operations/operation.context.set'
-import { propertiesEnd } from './operations/operation.end'
+import { executeOperationContact, propertiesContact } from './operations/operation.contact'
+import { executeOperationGetContext, propertiesContextGet } from './operations/operation.context.get'
+import { executeOperationSetContext, propertiesContextSet } from './operations/operation.context.set'
+import { executeOperationEnd, propertiesEnd } from './operations/operation.end'
 import { propertiesIntent } from './operations/operation.intent'
 import { propertiesIntentAction } from './operations/operation.intent.action'
 import { propertiesIntentActionBuild } from './operations/operation.intent.action.build'
-// import { propertiesMain } from './operations/operation.main';
-import { propertiesMenu } from './operations/operation.menu'
-import { propertiesMessage } from './operations/operation.message'
-// import { propertiesPage } from './operations/operation.page';
+import { executeOperationMenu, propertiesMenu } from './operations/operation.menu'
+import { executeOperationMessage, propertiesMessage } from './operations/operation.message'
 import { propertiesTransfer } from './operations/operation.transfer'
-import { propertiesWait } from './operations/operation.wait'
+import { executeOperationWait, propertiesWait } from './operations/operation.wait'
 import { getOperationProperties, getResourceOptions } from './resources'
 
 export class CKit2 implements INodeType {
@@ -52,9 +50,10 @@ export class CKit2 implements INodeType {
 				default: '',
 			},
 			...getOperationProperties(),
+			...propertiesChatbot,
+			...propertiesMessage,
 			...propertiesAdvisor,
 			...propertiesApi,
-			...propertiesChatbot,
 			...propertiesContact,
 			...propertiesContextGet,
 			...propertiesContextSet,
@@ -62,10 +61,7 @@ export class CKit2 implements INodeType {
 			...propertiesIntentActionBuild,
 			...propertiesIntentAction,
 			...propertiesIntent,
-			// ...propertiesMain,
 			...propertiesMenu,
-			...propertiesMessage,
-			// ...propertiesPage,
 			...propertiesTransfer,
 			...propertiesWait,
 		],
@@ -77,8 +73,34 @@ export class CKit2 implements INodeType {
 
 		const resource = this.getNodeParameter('resource', 0, '') as string
 		const operation = this.getNodeParameter('operation', 0) as string
+		if (operation === 'chatbot') { 
+    		return executeOperationChatbot(this)
+		}
+		if (operation === 'message') {
+			return executeOperationMessage(this)
+		}
+		if (operation === 'end') {
+			return executeOperationEnd(this)
+		}
+		if (operation === 'api') {
+			return executeOperationApi(this)
+		}
+		if (operation === 'waitUserMessage') {
+			return executeOperationWait(this)
+		}
+		if (operation === 'menu') {
+			return executeOperationMenu(this)
+		}
+		if (operation === 'contact') {
+			return executeOperationContact(this)
+		}
+		if (operation === 'setContext') {
+			return executeOperationSetContext(this)
+		}
+		if (operation === 'getContext') {
+			return executeOperationGetContext(this)
+		}
 		this.logger.warn(`Resource: ${resource} - Operation: ${operation} - Not implemented yet`)
-
-		return executeOperationChatbot(this)
+		return [this.helpers.returnJsonArray(items)]
 	}
 }

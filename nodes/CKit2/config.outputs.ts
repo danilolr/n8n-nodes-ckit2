@@ -11,41 +11,12 @@ export const configureOutputs = (parameters: INodeParameters) => {
 		]
 	}
 
-	// if (operation === 'ckit') {
-	// 	return [
-	// 		{
-	// 			type: 'main',
-	// 			displayName: 'onWebResponse',
-	// 		},
-	// 		{
-	// 			type: 'main',
-	// 			displayName: 'onChatbot',
-	// 		},
-	// 		{
-	// 			type: 'main',
-	// 			displayName: 'onError',
-	// 		},
-	// 		{
-	// 			type: 'main',
-	// 			displayName: 'onCallback',
-	// 		},
-	// 	];
-	// }
-
 	if (operation === 'chatbot') {
 		return [
 			{
 				type: 'main',
-				displayName: 'onWebResponse',
-			},
-			{
-				type: 'main',
 				displayName: 'onMessage',
 			},
-			// {
-			// 	type: 'main',
-			// 	displayName: 'onGetPages',
-			// },
 			{
 				type: 'main',
 				displayName: 'onGetAdvisor',

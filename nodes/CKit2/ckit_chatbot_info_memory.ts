@@ -105,15 +105,21 @@ export class ChatbotInfoMemory {
 }
 
 export class ConversationInfo {
+    
 	pendingMessages: MessageData[] = []
 	context: IDataObject = {}
 	pendingContact?: { name: string; email: string; phone: string; docId: string; docType: string }
 	private actions: IDataObject[] = []
+	ended: boolean = false
 
 	constructor(
 		public workflowId: string,
 		public uuid: string,
 	) {}
+
+    setEnded() {
+        this.ended = true
+    }
 
 	addTextMessage(text: string) {
 		const message = new MessageData('TEXT', text, undefined)

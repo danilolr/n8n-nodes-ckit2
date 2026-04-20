@@ -1,4 +1,4 @@
-import { GenericValue, IDataObject, IExecuteFunctions } from "n8n-workflow"
+import { GenericValue, IDataObject, IExecuteFunctions, INodeExecutionData } from "n8n-workflow"
 import { CKitMemoryService } from "./ckit_db"
 
 export class MessageData {
@@ -26,11 +26,49 @@ export class StdMessage {
     }
 }
 
-export function buildStdMessageFromInput(input: IDataObject): StdMessage {
+export interface CallerContextInfo {
+    uuid: string
+    env: string
+    clientRef: string
+    urlCallback: string
+}
+
+export function getCallerContextFromMemory(self: IExecuteFunctions): CallerContextInfo | undefined {
+    const executionMemory = CKitMemoryService.getExecutionMemory(self)
+    return executionMemory.read("callerContext") as CallerContextInfo | undefined
+}
+
+export function getInfoFromMemory(self: IExecuteFunctions, key: string): GenericValue | undefined {
+    const executionMemory = CKitMemoryService.getExecutionMemory(self)
+    return executionMemory.read(key) as GenericValue | undefined
+}
+
+// export function buildStdMessageFromInput(input: IDataObject): StdMessage {
+//     return new StdMessage(
+//         input['type'] as string,
+//         input['executionId'] as string,
+//         input['payload'] as unknown
+//     )
+// }
+
+export function buildNodeResponse(self: IExecuteFunctions, type: string, payload: unknown): INodeExecutionData[] {
+    const msg = buildStdMessageFromData(self, type, payload)
+    return [{
+        json: msg.toJson()
+    }]
+}
+
+export function buildStdMessage(self: IExecuteFunctions, type: string): StdMessage {
     return new StdMessage(
-        input['type'] as string,
-        input['executionId'] as string,
-        input['payload'] as unknown
+        type,
+        self.getExecutionId(),
+        {
+            callerContext: getInfoFromMemory(self, "callerContext"),
+            contact: getInfoFromMemory(self, "contact"),
+            channel: getInfoFromMemory(self, "channel"),
+            context: getInfoFromMemory(self, "context"),
+            lastUserMessage: getInfoFromMemory(self, "lastUserMessage"),
+        }
     )
 }
 
@@ -50,14 +88,14 @@ export interface ApiInfo {
 
 export function setApiInfoInMemory(self: IExecuteFunctions, apiInfo: ApiInfo) {
     const executionMemory = CKitMemoryService.getExecutionMemory(self)
-    self.logger.error("Setting apiInfo in memory on executionId " + self.getExecutionId() + ": " + JSON.stringify(apiInfo))
+    // self.logger.error("Setting apiInfo in memory on executionId " + self.getExecutionId() + ": " + JSON.stringify(apiInfo))
     executionMemory.write("apiInfo", apiInfo)
 }
 
 export function putApiInfoInMemory(self: IExecuteFunctions, env: string) {
     const apiConfigUi = (self.getNodeParameter('apiConfigUi', 0, {}) as { apiConfigUiValues: { envApiKey: string, envApiUrl: string, urlApiUrl: string }[] })
-    self.logger.info(`PUT API INFO IN MEMORY: ${env}`)
-    self.logger.info(JSON.stringify(apiConfigUi))
+    // self.logger.info(`PUT API INFO IN MEMORY: ${env}`)
+    // self.logger.info(JSON.stringify(apiConfigUi))
     let apiUrl = ""
     let apiKey = ""
     if (apiConfigUi && apiConfigUi.apiConfigUiValues) {
@@ -69,7 +107,7 @@ export function putApiInfoInMemory(self: IExecuteFunctions, env: string) {
                 break
             }
         }
-        self.logger.info(`CKitChatbot apiUrl: [${apiUrl}]`)
+        // self.logger.info(`CKitChatbot apiUrl: [${apiUrl}]`)
     }
 
     setApiInfoInMemory(self, {

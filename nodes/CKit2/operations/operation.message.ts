@@ -1,4 +1,7 @@
-import type { INodeProperties } from 'n8n-workflow'
+import type { IDataObject, IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
+import { flushInput } from '../callback_utils'
+import { ConversationInfo } from '../ckit_chatbot_info_memory'
+import { CKitMemoryService } from '../ckit_db'
 
 export const propertiesMessage: INodeProperties[] = [
 	{
@@ -107,3 +110,36 @@ export const propertiesMessage: INodeProperties[] = [
 		noDataExpression: true,
 	},
 ]
+
+export async function executeOperationMessage(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
+	self.logger.warn("CKitGeneric: execute MESSAGE operation")
+	const input = self.getInputData()[0].json as IDataObject
+	const message = self.getNodeParameter('textMessage', 0, '') as string
+	const sendMode = self.getNodeParameter('sendMode', 0, '') as string
+	const msgType = self.getNodeParameter('msgType', 0, '') as string
+
+	self.logger.info(`CKitGeneric MESSAGE executed with params: ${JSON.stringify(input)} - message: ${message}, sendMode: ${sendMode}, msgType: ${msgType}`);
+
+	const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
+	if (!conversation) {
+		self.logger.info("CKitMsg: No conversation found")
+		return [self.getInputData(0)]
+	}
+
+	if (msgType == "textMessage") {
+		self.logger.info(`CKitMsg: Adding text message to conversation ${conversation.uuid} - message: ${message}`)
+		conversation.addTextMessage(message)
+	} if (msgType == "fileMessage") {
+		const fileUrl = self.getNodeParameter('fileUrl', 0, '') as string
+		self.logger.info(`CKitMsg: Adding file message to conversation ${conversation.uuid} - message: ${message} ${fileUrl}`)
+		conversation.addDocMessage(message, fileUrl)
+	}
+
+	self.logger.info(`CKitMsg: Adding text message to conversation ${conversation.uuid} - message: ${message}`)
+
+	if (sendMode == 'sendAndProceed' || sendMode == 'sendAndWait') {
+		await flushInput(self)
+	}
+
+	return [self.helpers.returnJsonArray(input)]
+}

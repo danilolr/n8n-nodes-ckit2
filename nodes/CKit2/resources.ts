@@ -60,10 +60,10 @@ const resources: ResourceDefinition[] = [
 				action: 'Contact',
 			},
 			{
-				name: 'Wait',
-				value: 'wait',
-				description: 'Wait for message operation',
-				action: 'Wait',
+				name: 'WaitUserMessage',
+				value: 'waitUserMessage',
+				description: 'Wait for user message1',
+				action: 'Wait for User Message2',
 			},
 			{
 				name: 'End',
@@ -101,12 +101,6 @@ const resources: ResourceDefinition[] = [
 		name: 'Config',
 		value: 'config',
 		operations: [
-			// {
-			// 	name: 'CKit',
-			// 	value: 'ckit',
-			// 	description: 'CKit operation',
-			// 	action: 'CKit',
-			// },
 			{
 				name: 'Chatbot',
 				value: 'chatbot',
