@@ -112,7 +112,7 @@ export const propertiesMessage: INodeProperties[] = [
 ]
 
 export async function executeOperationMessage(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-	self.logger.warn("CKitGeneric: execute MESSAGE operation")
+	self.logger.warn("Execute MESSAGE operation")
 	const input = self.getInputData()[0].json as IDataObject
 	const message = self.getNodeParameter('textMessage', 0, '') as string
 	const sendMode = self.getNodeParameter('sendMode', 0, '') as string
