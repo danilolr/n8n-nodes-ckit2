@@ -32,7 +32,7 @@
         "lint": "n8n-node lint",
         "lint:fix": "n8n-node lint --fix",
         "release": "n8n-node release",
-        "prepublishOnly": "n8n-node prerelease"
+        "prepublishOnly": "node -e \"if (!process.env.CI) { console.error('Publish via GitHub Actions only. Use npm run release locally to create the tag and GitHub release.'); process.exit(1); }\""
     },
     "files": [
         "dist"
