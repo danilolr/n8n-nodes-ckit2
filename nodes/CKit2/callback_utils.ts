@@ -1,4 +1,4 @@
-import { IDataObject, IExecuteFunctions, IHttpRequestOptions } from "n8n-workflow"
+import { IDataObject, IExecuteFunctions, IHttpRequestOptions, sleep } from "n8n-workflow"
 import { getCallerContextFromMemory } from "./ckit_model"
 import { CKitMemoryService } from "./ckit_db"
 import { ConversationInfo } from "./ckit_chatbot_info_memory"
@@ -9,7 +9,7 @@ export async function callBackend(self: IExecuteFunctions, callbackType: string,
         self.logger.error("No callerContext found in memory")
         return
     }
-    let urlCallback = `${callerContext.urlCallback}/${callbackType}/${callerContext.uuid}`
+    const urlCallback = `${callerContext.urlCallback}/${callbackType}/${callerContext.uuid}`
     if (callbackType !== "isMessageAvaliable") {
         self.logger.info("callBackend type: " + callbackType)
         self.logger.info("callBackend params: " + JSON.stringify(params) + " callbackType: " + callbackType)
@@ -96,7 +96,7 @@ export async function flushInput(self: IExecuteFunctions) {
 export async function readResponseMessage(self: IExecuteFunctions): Promise<IDataObject> {
     let msg = await callBackend(self, "isMessageAvaliable", {})
     while (msg.ok === false) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await sleep(1000)
         msg = await callBackend(self, "isMessageAvaliable", {})
     }
     self.logger.info("readResponseMessage: " + JSON.stringify(msg))

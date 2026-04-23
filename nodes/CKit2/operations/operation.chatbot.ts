@@ -5,7 +5,7 @@ import {
 	type INodeExecutionData,
 	type INodeProperties,
 } from 'n8n-workflow'
-import { buildStdMessage, MessageData, putApiInfoInMemory } from '../ckit_model'
+import { buildStdMessage, putApiInfoInMemory } from '../ckit_model'
 import { callBackend } from '../callback_utils'
 import { CKitMemoryService } from '../ckit_db'
 import { ConversationInfo } from '../ckit_chatbot_info_memory'
@@ -118,7 +118,7 @@ export const propertiesChatbot: INodeProperties[] = [
 	},
 ]
 
-function processOnStartConversation(self: IExecuteFunctions, userIdentifier: string, channelType: string, message: MessageData): INodeExecutionData[] {
+function processOnStartConversation(self: IExecuteFunctions): INodeExecutionData[] {
 	self.logger.info("processOnStartConversation")
 	const stdMsg = buildStdMessage(self, "executeChatbot")
 	return [{
@@ -152,8 +152,7 @@ async function onStartConversation(
 	const conversationUuid = (payload['callerContext'] as IDataObject)['uuid'] as string
 	const conversation = new ConversationInfo(self.getExecutionId(), conversationUuid)
 	executionMemory.write("conversation", conversation)
-	const message: MessageData = new MessageData("TEXT", (payload['param'] as IDataObject)['mensagem'] as string)
-	const onMessage = processOnStartConversation(self, (payload['context'] as IDataObject)['userIdentifier'] as string, (payload['context'] as IDataObject)['channelType'] as string, message)
+	const onMessage = processOnStartConversation(self)
 
 	self.logger.info("Will call backend: " + conversationUuid)
 	const callbackParams = {
@@ -169,7 +168,7 @@ export async function executeOperationChatbot(
 ): Promise<INodeExecutionData[][]> {
 	self.logger.debug('EXECUTE CB')
 	let onMessage: INodeExecutionData[] = []
-	let onGetAdvisor: INodeExecutionData[] = []
+	const onGetAdvisor: INodeExecutionData[] = []
 
 	const input = self.getInputData(0)[0] as INodeExecutionData
 

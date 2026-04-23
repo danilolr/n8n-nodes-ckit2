@@ -1,4 +1,7 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
+import { CKitMemoryService } from '../ckit_db'
+import { flushInput } from '../callback_utils'
+import { ConversationInfo } from '../ckit_chatbot_info_memory'
 
 export const propertiesContact: INodeProperties[] = [
 	{
@@ -65,5 +68,18 @@ export const propertiesContact: INodeProperties[] = [
 ]
 
 export async function executeOperationContact(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-	return []	
+	self.logger.warn("CKitGeneric: execute CONTACT operation")
+	const name = self.getNodeParameter('name', 0, '') as string
+	const email = self.getNodeParameter('email', 0, '') as string
+	const phone = self.getNodeParameter('phone', 0, '') as string
+	const docId = self.getNodeParameter('docId', 0, '') as string
+	const docType = self.getNodeParameter('docType', 0, '') as string
+	const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
+	if (!conversation) {
+		self.logger.info("CKitMsg: No conversation found")
+		return [self.getInputData(0)]
+	}
+	conversation.setContact(name, email, phone, docId, docType)
+	await flushInput(self)
+	return [self.getInputData()]
 }

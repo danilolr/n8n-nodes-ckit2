@@ -15,7 +15,10 @@
     "publishConfig": {
         "access": "public"
     },
-    "author": "Danilo Luiz Rheinheimer <danilolr@gmail.com>",
+    "author": {
+        "name": "Danilo Luiz Rheinheimer",
+        "email": "danilolr@gmail.com"
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/danilolr/n8n-nodes-ckit2.git"
