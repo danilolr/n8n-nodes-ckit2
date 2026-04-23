@@ -1,6 +1,6 @@
 {
     "name": "@chatbot-kit/n8n-nodes-ckit2",
-    "version": "0.1.2",
+    "version": "0.1.3",
     "description": "Next-generation Chatbot Kit nodes for n8n",
     "main": "dist/nodes/CKit2/CKit2.node.js",
     "license": "MIT",
