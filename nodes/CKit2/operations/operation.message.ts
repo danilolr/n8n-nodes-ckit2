@@ -1,7 +1,8 @@
 import type { IDataObject, IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
-import { flushInput } from '../callback_utils'
+import { flushInput, readResponseMessage, saveLastUserMessage } from '../callback_utils'
 import { ConversationInfo } from '../ckit_chatbot_info_memory'
 import { CKitMemoryService } from '../ckit_db'
+import { buildStdMessage } from '../ckit_model'
 
 export const propertiesMessage: INodeProperties[] = [
 	{
@@ -140,6 +141,17 @@ export async function executeOperationMessage(self: IExecuteFunctions): Promise<
 	if (sendMode == 'sendAndProceed' || sendMode == 'sendAndWait') {
 		await flushInput(self)
 	}
+	if (sendMode == 'sendAndWait') {
+		const msg = await readResponseMessage(self)
+		self.logger.info("Will save lastUserMessage in memory: " + JSON.stringify(msg))
+		saveLastUserMessage(self, msg)
+	}
 
-	return [self.helpers.returnJsonArray(input)]
+	const stdMsg = buildStdMessage(self, "executeChatbot")
+	const onOut = [{
+		json: stdMsg.toJson()
+	}]
+	return [
+		self.helpers.returnJsonArray(onOut)
+	]
 }

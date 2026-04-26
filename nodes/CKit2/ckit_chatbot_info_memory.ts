@@ -162,6 +162,10 @@ export class ConversationInfo {
 		return this.context
 	}
 
+	getContextClone(): IDataObject {
+		return { ...this.context }
+	}
+
 	setContact(name: string, email: string, phone: string, docId: string, docType: string) {
 		this.pendingContact = {
 			name: name,

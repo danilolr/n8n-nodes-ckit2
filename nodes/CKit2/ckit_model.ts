@@ -1,5 +1,6 @@
-import { GenericValue, IDataObject, IExecuteFunctions, INodeExecutionData } from "n8n-workflow"
+import { GenericValue, IDataObject, IExecuteFunctions, NodeOperationError } from "n8n-workflow"
 import { CKitMemoryService } from "./ckit_db"
+import { ConversationInfo } from "./ckit_chatbot_info_memory"
 
 export class MessageData {
 	constructor(
@@ -51,14 +52,18 @@ export function getInfoFromMemory(self: IExecuteFunctions, key: string): Generic
 //     )
 // }
 
-export function buildNodeResponse(self: IExecuteFunctions, type: string, payload: unknown): INodeExecutionData[] {
-    const msg = buildStdMessageFromData(self, type, payload)
-    return [{
-        json: msg.toJson()
-    }]
-}
+// export function buildNodeResponse(self: IExecuteFunctions, type: string, payload: unknown): INodeExecutionData[] {
+//     const msg = buildStdMessageFromData(self, type, payload)
+//     return [{
+//         json: msg.toJson()
+//     }]
+// }
 
 export function buildStdMessage(self: IExecuteFunctions, type: string): StdMessage {
+    const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
+    if (!conversation) {
+        throw new NodeOperationError(self.getNode(), 'No current conversation found', {})        
+    }
     return new StdMessage(
         type,
         self.getExecutionId(),
@@ -66,7 +71,7 @@ export function buildStdMessage(self: IExecuteFunctions, type: string): StdMessa
             callerContext: getInfoFromMemory(self, "callerContext"),
             contact: getInfoFromMemory(self, "contact"),
             channel: getInfoFromMemory(self, "channel"),
-            context: getInfoFromMemory(self, "context"),
+            context: conversation.getContextClone(),
             lastUserMessage: getInfoFromMemory(self, "lastUserMessage"),
         }
     )

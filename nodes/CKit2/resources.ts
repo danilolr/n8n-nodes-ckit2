@@ -62,8 +62,8 @@ const resources: ResourceDefinition[] = [
 			{
 				name: 'WaitUserMessage',
 				value: 'waitUserMessage',
-				description: 'Wait for user message1',
-				action: 'Wait for User Message2',
+				description: 'Wait for message',
+				action: 'Wait for message',
 			},
 			{
 				name: 'End',

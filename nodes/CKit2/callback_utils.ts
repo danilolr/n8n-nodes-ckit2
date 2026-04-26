@@ -4,6 +4,9 @@ import { CKitMemoryService } from "./ckit_db"
 import { ConversationInfo } from "./ckit_chatbot_info_memory"
 
 export async function callBackend(self: IExecuteFunctions, callbackType: string, params: IDataObject) {
+    if (callbackType !== "isMessageAvaliable") {
+    self.logger.warn("***** CALLBACKEND START *****")
+    }
     const callerContext = getCallerContextFromMemory(self)
     if (!callerContext) {
         self.logger.error("No callerContext found in memory")
@@ -16,22 +19,25 @@ export async function callBackend(self: IExecuteFunctions, callbackType: string,
         self.logger.info("callBackend callerContext: " + JSON.stringify(callerContext))
         self.logger.error("callBackend urlCallback: " + JSON.stringify(urlCallback))
     }
-    if (urlCallback) {
-        const options: IHttpRequestOptions = {
-            method: 'POST',
-            url: urlCallback,
-            body: params,
-            json: true,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-        }
-        const resp = await self.helpers.httpRequest(options)
-        if (callbackType !== "isMessageAvaliable") {
-            self.logger.warn("callBackend response :" + JSON.stringify(resp))
-        }
-        return resp
+    if (!urlCallback) {
+        self.logger.error("No urlCallback found")
+        return
     }
+    const options: IHttpRequestOptions = {
+        method: 'POST',
+        url: urlCallback,
+        body: params,
+        json: true,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+    }
+    const resp = await self.helpers.httpRequest(options)
+    if (callbackType !== "isMessageAvaliable") {
+        self.logger.warn("callBackend response :" + JSON.stringify(resp))
+        self.logger.warn("***** CALLBACKEND END *****")
+    }    
+    return resp
 }
 
 export async function endConversation(self: IExecuteFunctions) {
@@ -89,16 +95,30 @@ export async function flushInput(self: IExecuteFunctions) {
     }
 
     await callBackend(self, "generic", params)
-    self.logger.info("------------------------------- CLEANING PENGING MESSAGES: " + JSON.stringify(pendingMessages, null, 2))
     conversation.clearPendingMessages()
 }
 
-export async function readResponseMessage(self: IExecuteFunctions): Promise<IDataObject> {
+export async function readResponseMessage(self: IExecuteFunctions): Promise<UserMessage> {
     let msg = await callBackend(self, "isMessageAvaliable", {})
     while (msg.ok === false) {
         await sleep(1000)
         msg = await callBackend(self, "isMessageAvaliable", {})
     }
     self.logger.info("readResponseMessage: " + JSON.stringify(msg))
-    return { ok: true, msgType: "textMessage", texto: msg.message.text, caminhoHttpArquivo: undefined }
+    return { msgType: MessageTypeEnum.TEXT, text: msg.message.text, caminhoHttpArquivo: undefined }
+}
+
+export async function saveLastUserMessage(self: IExecuteFunctions, param: UserMessage) {
+    const executionMemory = CKitMemoryService.getExecutionMemory(self)
+    executionMemory.write("lastUserMessage", param)
+}
+
+export enum MessageTypeEnum {
+    TEXT = "TEXT"
+}
+
+export interface UserMessage {
+    msgType: MessageTypeEnum
+    text?: string
+    caminhoHttpArquivo?: string
 }

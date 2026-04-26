@@ -2,6 +2,7 @@ import type { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n
 import { CKitMemoryService } from '../ckit_db'
 import { flushInput } from '../callback_utils'
 import { ConversationInfo } from '../ckit_chatbot_info_memory'
+import { buildStdMessage } from '../ckit_model'
 
 export const propertiesContact: INodeProperties[] = [
 	{
@@ -81,5 +82,8 @@ export async function executeOperationContact(self: IExecuteFunctions): Promise<
 	}
 	conversation.setContact(name, email, phone, docId, docType)
 	await flushInput(self)
-	return [self.getInputData()]
+	const outResponse = [{
+		json: buildStdMessage(self, "executeChatbot").toJson()
+	}]
+	return [outResponse]
 }

@@ -1,8 +1,8 @@
 import type { IDataObject, IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
-import { CKitMemoryService } from '../ckit_db';
-import { ConversationInfo } from '../ckit_chatbot_info_memory';
-import { flushInput, readResponseMessage } from '../callback_utils';
-import { buildNodeResponse } from '../ckit_model';
+import { CKitMemoryService } from '../ckit_db'
+import { ConversationInfo } from '../ckit_chatbot_info_memory'
+import { flushInput, MessageTypeEnum, readResponseMessage } from '../callback_utils'
+import { buildStdMessage } from '../ckit_model'
 
 export const propertiesMenu: INodeProperties[] = [
 	{
@@ -165,11 +165,11 @@ export async function executeOperationMenu(self: IExecuteFunctions): Promise<INo
 }
 
 async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Array<{ key: string; texto: string; outputName: string }> }): Promise<{ onOptions: INodeExecutionData[][], onNone: INodeExecutionData[] }> {
-	const userResponse = await readResponseMessage(self) as IDataObject
+	const userResponse = await readResponseMessage(self)
 	self.logger.error("User menu answer: " + JSON.stringify(userResponse))
 	const onOptions: INodeExecutionData[][] = []
 	let onNone: INodeExecutionData[] = []
-	if (userResponse['msgType'] != "textMessage") {
+	if (userResponse.msgType != MessageTypeEnum.TEXT) {
 		const mensagemTipoMensagemIncorreta = self.getNodeParameter('mensagemTipoMensagemIncorreta', 0, 'Choose a menu option') as string
 		const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
 		conversation?.addTextMessage(mensagemTipoMensagemIncorreta)
@@ -177,7 +177,7 @@ async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Ar
 		return await getMenuResponse(self, menuConfig)
 	}
 	self.logger.error(JSON.stringify(userResponse))
-	const resposta = userResponse['texto']
+	const resposta = userResponse.text
 	self.logger.info("OPCAO :" + resposta)
 	let p = 0
 	let valida = false
@@ -185,12 +185,23 @@ async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Ar
 		onOptions.push([])
 		self.logger.info("ESTADO :" + JSON.stringify(estadoEntry))
 		if (estadoEntry.key == resposta) {
-			onOptions[p] = buildNodeResponse(self, "optionSelected", {})
+			// onOptions[p] = buildNodeResponse(self, "optionSelected", {})
+			const onOut = [{
+				json: buildStdMessage(self, "executeChatbot").toJson()
+			}]
+			onOptions[p] = onOut
+			// const stdMsg = buildStdMessage(self, "executeChatbot")
+			// const onOut = [{
+			// 	json: stdMsg.toJson()
+			// }]
+
+			self.logger.info("OPCAO ENCONTRADA :" + p + " " + JSON.stringify(onOptions[p]))
 			valida = true
 		}
 		p++
 	})
-	if (valida == false) {
+	self.logger.info("OPCAO VALIDA :" + valida)
+	if (!valida) {
 		const mensagemOpcaoInvalida = self.getNodeParameter('mensagemOpcaoInvalida', 0, '') as string
 		if (mensagemOpcaoInvalida == null || mensagemOpcaoInvalida == "") {
 			onNone = [{
@@ -199,13 +210,15 @@ async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Ar
 					"response": "Opção inválida"
 				}
 			}]
+			return { onOptions: onOptions, onNone: onNone }
 		} else {
 			const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
 			conversation?.addTextMessage(mensagemOpcaoInvalida)
-			flushInput(self)
+			await flushInput(self)
 			return await getMenuResponse(self, menuConfig)
 		}
+	} else {
+		return { onOptions: onOptions, onNone: onNone }
 	}
-	return { onOptions: onOptions, onNone: onNone }
 }
 

@@ -6,7 +6,7 @@ import {
 	type INodeProperties,
 } from 'n8n-workflow'
 import { buildStdMessage, putApiInfoInMemory } from '../ckit_model'
-import { callBackend } from '../callback_utils'
+import { callBackend, MessageTypeEnum, saveLastUserMessage } from '../callback_utils'
 import { CKitMemoryService } from '../ckit_db'
 import { ConversationInfo } from '../ckit_chatbot_info_memory'
 
@@ -147,7 +147,11 @@ async function onStartConversation(
 	executionMemory.write("contact", payload['contact'] as IDataObject)
 	executionMemory.write("channel", payload['channel'] as IDataObject)
 	executionMemory.write("context", payload['context'] as IDataObject)
-	executionMemory.write("lastUserMessage", param['message'] as IDataObject)
+	self.logger.info("Will save lastUserMessage in memory: " + JSON.stringify(param['message'] as IDataObject)	)
+	saveLastUserMessage(self, {
+		msgType: MessageTypeEnum.TEXT,
+		text: param['message'] ? (param['message'] as IDataObject)['text'] as string : undefined,
+	})
 
 	const conversationUuid = (payload['callerContext'] as IDataObject)['uuid'] as string
 	const conversation = new ConversationInfo(self.getExecutionId(), conversationUuid)
@@ -160,13 +164,13 @@ async function onStartConversation(
 	}
 	await callBackend(self, "setExecutionId", callbackParams)
 
-	return onMessage 
+	return onMessage
 }
 
 export async function executeOperationChatbot(
 	self: IExecuteFunctions,
 ): Promise<INodeExecutionData[][]> {
-	self.logger.debug('EXECUTE CB')
+	self.logger.debug('Execute chatbot node')
 	let onMessage: INodeExecutionData[] = []
 	const onGetAdvisor: INodeExecutionData[] = []
 

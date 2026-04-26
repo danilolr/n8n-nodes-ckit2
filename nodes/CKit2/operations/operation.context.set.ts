@@ -1,6 +1,7 @@
-import type { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
+import { NodeOperationError, type IExecuteFunctions, type INodeExecutionData, type INodeProperties } from 'n8n-workflow'
 import { CKitMemoryService } from '../ckit_db'
 import { ConversationInfo } from '../ckit_chatbot_info_memory'
+import { buildStdMessage } from '../ckit_model'
 
 export const propertiesContextSet: INodeProperties[] = [
 	{
@@ -49,15 +50,24 @@ export async function executeOperationSetContext(self: IExecuteFunctions): Promi
 	const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
 	if (conversation) {
 		const setters = self.getNodeParameter('setters', 0, '') as { setter: { key: string, value: string }[] }
-		self.logger.warn(JSON.stringify(setters, null, 2))
+		if (setters) {
+			self.logger.warn(JSON.stringify(setters, null, 2))
 
-		for (const setter of setters.setter) {
-			const key = setter.key as string
-			const value = setter.value as string
-			conversation.setContextVar(self, key, value)
+			for (const setter of setters.setter) {
+				const key = setter.key as string
+				const value = setter.value as string
+				conversation.setContextVar(self, key, value)
+			}
+		} else {
+			self.logger.info("No setters provided")
 		}
 	} else {
 		self.logger.error("No current conversation found for workflowId: " + self.getWorkflow().id)
+		throw new NodeOperationError(self.getNode(), 'No current conversation found', {})
 	}
-	return [self.getInputData()]
+	const outResponse = [{
+		json: buildStdMessage(self, "executeChatbot").toJson()
+	}]
+
+	return [outResponse]
 }

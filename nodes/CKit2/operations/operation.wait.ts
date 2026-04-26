@@ -1,8 +1,8 @@
 import type { IExecuteFunctions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
 import { CKitMemoryService } from '../ckit_db';
 import { ConversationInfo } from '../ckit_chatbot_info_memory';
-import { flushInput, readResponseMessage } from '../callback_utils';
-import { StdMessage } from '../ckit_model';
+import { flushInput, readResponseMessage, saveLastUserMessage } from '../callback_utils';
+import { buildStdMessage } from '../ckit_model';
 
 export const propertiesWait: INodeProperties[] = [
 	{
@@ -21,9 +21,7 @@ export const propertiesWait: INodeProperties[] = [
 ]
 
 export async function executeOperationWait(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-	self.logger.warn("CKitGeneric: execute WAIT operation");
-	let onOut: INodeExecutionData[] = []
-
+	self.logger.warn("CKitGeneric: execute WAIT operation")
 	const message = self.getNodeParameter('textMessageWait', 0, '') as string
 	if (message || message.trim().length > 0) {
 		const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
@@ -34,18 +32,19 @@ export async function executeOperationWait(self: IExecuteFunctions): Promise<INo
 
 		self.logger.info(`CKitWait: Adding message to conversation ${conversation.uuid} - message: ${message}`)
 		conversation.addTextMessage(message)
-
-		await flushInput(self)
+    	await flushInput(self)
 	}
+
 	const msg = await readResponseMessage(self)
-	onOut = [{
-		json: new StdMessage("message", self.getExecutionId(), {
-			"message": { msgType: msg['msgType'], text: msg['texto'], filePath: msg['caminhoHttpArquivo'] },
-		}).toJson()
+	self.logger.info("Will save lastUserMessage in memory: " + JSON.stringify(msg))
+	saveLastUserMessage(self, msg)
+
+	const stdMsg = buildStdMessage(self, "executeChatbot")
+	const onOut = [{
+		json: stdMsg.toJson()
 	}]
 
 	return [
 		self.helpers.returnJsonArray(onOut)
 	]
-
 }
