@@ -34,6 +34,11 @@ export interface CallerContextInfo {
     urlCallback: string
 }
 
+export interface ChannelInfo {
+    userIdentifier: string
+    channelType: string
+}
+
 export function getCallerContextFromMemory(self: IExecuteFunctions): CallerContextInfo | undefined {
     const executionMemory = CKitMemoryService.getExecutionMemory(self)
     return executionMemory.read("callerContext") as CallerContextInfo | undefined
@@ -44,20 +49,9 @@ export function getInfoFromMemory(self: IExecuteFunctions, key: string): Generic
     return executionMemory.read(key) as GenericValue | undefined
 }
 
-// export function buildStdMessageFromInput(input: IDataObject): StdMessage {
-//     return new StdMessage(
-//         input['type'] as string,
-//         input['executionId'] as string,
-//         input['payload'] as unknown
-//     )
-// }
-
-// export function buildNodeResponse(self: IExecuteFunctions, type: string, payload: unknown): INodeExecutionData[] {
-//     const msg = buildStdMessageFromData(self, type, payload)
-//     return [{
-//         json: msg.toJson()
-//     }]
-// }
+export function getChannelInfoFromMemory(self: IExecuteFunctions): ChannelInfo | undefined {
+    return getInfoFromMemory(self, "channel") as ChannelInfo | undefined
+}
 
 export function buildStdMessage(self: IExecuteFunctions, type: string): StdMessage {
     const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
@@ -73,6 +67,7 @@ export function buildStdMessage(self: IExecuteFunctions, type: string): StdMessa
             channel: getInfoFromMemory(self, "channel"),
             context: conversation.getContextClone(),
             lastUserMessage: getInfoFromMemory(self, "lastUserMessage"),
+            lastApiCallResponse: getInfoFromMemory(self, "lastApiCallResponse"),
         }
     )
 }

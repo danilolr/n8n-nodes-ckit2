@@ -108,7 +108,7 @@ export const propertiesMenu: INodeProperties[] = [
 						name: 'text',
 						type: 'string',
 						default: '',
-						description: 'Menu option text, for example: Select this option to...',
+						description: 'Menu option text, for example: Select this option to',
 					},
 					{
 						displayName: 'Output Name',

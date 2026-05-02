@@ -1,14 +1,16 @@
 import {
+	IHttpRequestOptions,
 	NodeOperationError,
 	type IDataObject,
 	type IExecuteFunctions,
 	type INodeExecutionData,
 	type INodeProperties,
 } from 'n8n-workflow'
-import { buildStdMessage, putApiInfoInMemory } from '../ckit_model'
-import { callBackend, MessageTypeEnum, saveLastUserMessage } from '../callback_utils'
+import { buildStdMessage, getChannelInfoFromMemory, putApiInfoInMemory } from '../ckit_model'
+import { callBackend, flushInput, MessageTypeEnum, saveLastUserMessage } from '../callback_utils'
 import { CKitMemoryService } from '../ckit_db'
 import { ConversationInfo } from '../ckit_chatbot_info_memory'
+import { getApiInfoFromMemory } from './operation.api'
 
 export const propertiesChatbot: INodeProperties[] = [
 	{
@@ -29,6 +31,18 @@ export const propertiesChatbot: INodeProperties[] = [
 		type: 'string',
 		default: '0.0.1',
 		description: 'Version of the chatbot (e.g., 0.0.1)',
+		displayOptions: {
+			show: {
+				operation: ['chatbot'],
+			},
+		},
+	},
+	{
+		displayName: 'Call contact on start',
+		name: 'callContactOnStart',
+		type: 'boolean',
+		default: false,
+		description: 'Whether to call contact information from API on start conversation',
 		displayOptions: {
 			show: {
 				operation: ['chatbot'],
@@ -132,7 +146,8 @@ async function onStartConversation(
 ): Promise<INodeExecutionData[]> {
 	const body = input.json['body'] as IDataObject
 	const payload = body['payload'] as IDataObject
-	const env = (payload['callerContext'] as IDataObject)['env'] as string
+	const callerContext = payload['callerContext'] as IDataObject
+	const env = callerContext['env'] as string
 
 	self.logger.info(`CKitChatbot onStartConversation ------------------------------------`)
 	self.logger.info(`CKitChatbot env: ${env}`)
@@ -143,7 +158,7 @@ async function onStartConversation(
 	const param = payload['param'] as IDataObject
 
 	const executionMemory = CKitMemoryService.getExecutionMemory(self)
-	executionMemory.write("callerContext", payload['callerContext'] as IDataObject)
+	executionMemory.write("callerContext", callerContext)
 	executionMemory.write("contact", payload['contact'] as IDataObject)
 	executionMemory.write("channel", payload['channel'] as IDataObject)
 	executionMemory.write("context", payload['context'] as IDataObject)
@@ -153,7 +168,7 @@ async function onStartConversation(
 		text: param['message'] ? (param['message'] as IDataObject)['text'] as string : undefined,
 	})
 
-	const conversationUuid = (payload['callerContext'] as IDataObject)['uuid'] as string
+	const conversationUuid = callerContext['uuid'] as string
 	const conversation = new ConversationInfo(self.getExecutionId(), conversationUuid)
 	executionMemory.write("conversation", conversation)
 	const onMessage = processOnStartConversation(self)
@@ -180,6 +195,10 @@ export async function executeOperationChatbot(
 		const requestType = (input.json['body'] as IDataObject)?.['type'] as string
 		if (requestType == 'onStartConversation') {
 			onMessage = await onStartConversation(self, input)
+			const callContactOnStart = self.getNodeParameter('callContactOnStart', 0, false) as boolean
+			if (callContactOnStart) {
+				await callContact(self)
+			}
 		} else if (requestType == 'onAdvisor') {
 			// onGetAdvisor = onAdvisor(self, input)
 		} else {
@@ -188,4 +207,39 @@ export async function executeOperationChatbot(
 	}
 
 	return [onMessage, onGetAdvisor]
+}
+
+async function callContact(self: IExecuteFunctions): Promise<void> {
+	const apiInfo = getApiInfoFromMemory(self)
+	const url = `${apiInfo?.apiUrl}/contact` 
+	const channelInfo = getChannelInfoFromMemory(self)
+	const p: IDataObject = {
+		channelType: channelInfo?.channelType,
+		userIdentifier: channelInfo?.userIdentifier,
+	}
+
+	const options: IHttpRequestOptions = {
+		method: 'POST',
+		url: url,
+		body: p,
+		json: true,
+		headers: {
+			'Content-Type': 'application/json'
+		},
+	}
+
+	self.logger.info("URL: " + url)
+	self.logger.error("API CALL options: " + JSON.stringify(options))
+	
+	const resp = await self.helpers.httpRequest(options)
+	self.logger.error("API CALL response: " + JSON.stringify(resp))
+
+	const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
+	if (!conversation || !resp || !resp.ok) {
+		self.logger.info("CKitMsg: No conversation found")
+		return
+	}
+
+	conversation.setContact(resp.contact.name, resp.contact.email, resp.contact.phone, resp.contact.docId, resp.contact.docType)
+	await flushInput(self)
 }

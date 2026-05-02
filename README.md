@@ -53,6 +53,56 @@ If you changed TypeScript files in the node:
 
 You usually do not need to restart `npm run dev` unless you changed development scripts, package metadata, or the local development setup itself.
 
+## Release to npm
+
+This package is published by GitHub Actions, not directly from a local machine.
+The local release command creates the version commit, changelog update, Git tag,
+and GitHub release. The tag push then triggers `.github/workflows/publish.yml`,
+which runs lint, builds the package, and publishes to npm with provenance.
+
+### One-time setup
+
+Before releasing, make sure:
+
+- The GitHub repository is public. npm provenance for GitHub Actions does not
+  support private source repositories.
+- The GitHub repository has an Actions secret named `NPM_TOKEN`.
+- The `NPM_TOKEN` is an npm automation/granular token with permission to publish
+  under the `@chatbot-kit` scope.
+- The npm package is public. This is configured through
+  `publishConfig.access = "public"` in `package.json`.
+
+### Release steps
+
+1. Make sure the working tree is clean:
+
+```bash
+git status
+```
+
+2. Run the release command:
+
+```bash
+npm run release
+```
+
+3. Select the version increment when prompted.
+
+4. Confirm the changelog update, release commit, tag, push, and GitHub release
+   prompts.
+
+5. Open GitHub Actions and verify that the `Publish` workflow completed
+   successfully.
+
+6. Confirm the published version on npm:
+
+```bash
+npm view @chatbot-kit/n8n-nodes-ckit2 version
+```
+
+Do not run `npm publish` manually. The `prepublishOnly` script blocks local
+publishing so releases go through GitHub Actions with npm provenance.
+
 ## Resources
 
 - [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)

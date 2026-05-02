@@ -113,6 +113,11 @@ export async function saveLastUserMessage(self: IExecuteFunctions, param: UserMe
     executionMemory.write("lastUserMessage", param)
 }
 
+export async function saveLastApiCallResponse(self: IExecuteFunctions, param: unknown) {
+    const executionMemory = CKitMemoryService.getExecutionMemory(self)
+    executionMemory.write("lastApiCallResponse", param)
+}
+
 export enum MessageTypeEnum {
     TEXT = "TEXT"
 }

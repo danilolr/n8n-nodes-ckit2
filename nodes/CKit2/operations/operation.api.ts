@@ -1,6 +1,7 @@
 import type { GenericValue, IDataObject, IExecuteFunctions, IHttpRequestOptions, INodeExecutionData, INodeProperties } from 'n8n-workflow'
-import { ApiInfo } from '../ckit_model'
+import { ApiInfo, buildStdMessage } from '../ckit_model'
 import { CKitMemoryService } from '../ckit_db'
+import { saveLastApiCallResponse } from '../callback_utils'
 
 export const propertiesApi: INodeProperties[] = [
 	{
@@ -135,7 +136,14 @@ export async function executeOperationApi(self: IExecuteFunctions): Promise<INod
 
 	const resp = await callApi(self, apiMethod, params)
 	self.logger.info("API response: " + JSON.stringify(resp))
-	return [[{
-		json: resp as IDataObject,
-	}]]
+	saveLastApiCallResponse(self, resp)
+
+	const stdMsg = buildStdMessage(self, "executeChatbot")
+	const onOut = [{
+		json: stdMsg.toJson()
+	}]
+
+	return [
+		self.helpers.returnJsonArray(onOut)
+	]
 }
