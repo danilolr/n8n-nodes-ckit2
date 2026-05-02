@@ -38,7 +38,7 @@ export const propertiesChatbot: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Call contact on start',
+		displayName: 'Call Contact On Start',
 		name: 'callContactOnStart',
 		type: 'boolean',
 		default: false,
