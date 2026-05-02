@@ -101,7 +101,8 @@ export async function callApi(self: IExecuteFunctions, apiMethod: string, params
         body: p,
         json: true,
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+			'Authorization': `Bearer ${apiInfo?.apiKey}`
         },
     }
     self.logger.info("URL: " + url)

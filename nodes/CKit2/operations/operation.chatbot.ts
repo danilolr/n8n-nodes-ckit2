@@ -224,7 +224,8 @@ async function callContact(self: IExecuteFunctions): Promise<void> {
 		body: p,
 		json: true,
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
+			'Authorization': `Bearer ${apiInfo?.apiKey}`
 		},
 	}
 

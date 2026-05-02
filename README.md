@@ -53,6 +53,50 @@ If you changed TypeScript files in the node:
 
 You usually do not need to restart `npm run dev` unless you changed development scripts, package metadata, or the local development setup itself.
 
+## Debugging
+
+The preferred debug flow is VS Code with the local launch configuration.
+
+1. Open this repository in VS Code.
+
+2. Select `Debug n8n custom node` in the Run and Debug panel.
+
+3. Press `F5`.
+
+This starts the TypeScript watcher, starts the local n8n runner in debug mode,
+and attaches VS Code to the Node.js inspector on port `9240`.
+
+The local n8n editor is available at:
+
+```text
+http://localhost:5678
+```
+
+You can use normal VS Code breakpoints in TypeScript files under `nodes/`.
+You can also place a temporary `debugger;` statement where execution should
+pause.
+
+If port `9240` is already in use, update both places:
+
+- `dev:n8n:debug` in `package.json`
+- `port` in `.vscode/launch.json`
+
+### Manual Debugging
+
+If you do not want to use VS Code launch tasks, run:
+
+```bash
+npm run dev
+```
+
+In another terminal:
+
+```bash
+npm run dev:n8n:debug
+```
+
+Then attach a debugger to `localhost:9240`.
+
 ## Release to npm
 
 This package is published by GitHub Actions, not directly from a local machine.

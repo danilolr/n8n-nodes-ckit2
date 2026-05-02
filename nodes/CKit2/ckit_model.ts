@@ -82,20 +82,17 @@ export function buildStdMessageFromData(self: IExecuteFunctions, type: string, p
 
 export interface ApiInfo {
     env: string
-    apiUrl: string // url to call the API (API node type)
+    apiUrl: string
     apiKey: string
 }
 
 export function setApiInfoInMemory(self: IExecuteFunctions, apiInfo: ApiInfo) {
     const executionMemory = CKitMemoryService.getExecutionMemory(self)
-    // self.logger.error("Setting apiInfo in memory on executionId " + self.getExecutionId() + ": " + JSON.stringify(apiInfo))
     executionMemory.write("apiInfo", apiInfo)
 }
 
 export function putApiInfoInMemory(self: IExecuteFunctions, env: string) {
     const apiConfigUi = (self.getNodeParameter('apiConfigUi', 0, {}) as { apiConfigUiValues: { envApiKey: string, envApiUrl: string, urlApiUrl: string }[] })
-    // self.logger.info(`PUT API INFO IN MEMORY: ${env}`)
-    // self.logger.info(JSON.stringify(apiConfigUi))
     let apiUrl = ""
     let apiKey = ""
     if (apiConfigUi && apiConfigUi.apiConfigUiValues) {
