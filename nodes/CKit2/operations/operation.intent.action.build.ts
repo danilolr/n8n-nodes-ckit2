@@ -7,8 +7,8 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 		type: 'options',
 		options: [
 			{
-				name: 'Send Text Message Sugestion',
-				value: 'actiontextMessageSugestion',
+				name: 'Send Text Message Suggestion',
+				value: 'actionTextMessageSuggestion',
 				description: 'Send a text message suggestion',
 				action: 'Send a text message suggestion',
 			},
@@ -18,7 +18,7 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 				action: 'Send a file message',
 			},
 			{
-				name: 'Show a Action Button',
+				name: 'Show an Action Button',
 				value: 'actionShowButton',
 				action: 'Show a button',
 			},
@@ -28,7 +28,7 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 				action: 'Reload main page',
 			},
 		],
-		default: 'actiontextMessageSugestion',
+		default: 'actionTextMessageSuggestion',
 		noDataExpression: true,
 		displayOptions: {
 			show: {
@@ -42,10 +42,10 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'Message text',
-		description: 'Message text to be send',
+		description: 'Message text to send',
 		displayOptions: {
 			show: {
-				actionBuildType: ['actiontextMessageSugestion'],
+				actionBuildType: ['actionTextMessageSuggestion', 'actiontextMessageSugestion'],
 			},
 		},
 	},
@@ -55,10 +55,9 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'Button label',
-		description: 'ButtonLabel',
 		displayOptions: {
 			show: {
-				actionBuildType: ['actiontextMessageSugestion'],
+				actionBuildType: ['actionTextMessageSuggestion', 'actiontextMessageSugestion'],
 			},
 		},
 	},
@@ -129,7 +128,7 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 			{
 				name: 'From Binary',
 				value: 'fileBinary',
-				description: 'Get the file from a binary data',
+				description: 'Get the file from binary data',
 			},
 		],
 		default: 'fileUrl',
@@ -141,7 +140,7 @@ export const propertiesIntentActionBuild: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'File URL',
-		description: 'URL of the file to be send',
+		description: 'URL of the file to send',
 		displayOptions: {
 			show: {
 				fileType: ['fileUrl'],

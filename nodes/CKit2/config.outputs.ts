@@ -26,20 +26,22 @@ export const configureOutputs = (parameters: INodeParameters) => {
 
 	if (operation === 'menu') {
 		const outputs: Array<{ type: 'main'; displayName: string }> = []
+		const menuOptions = (parameters.menuOptions as IDataObject | undefined)?.option as
+			| IDataObject[]
+			| undefined
+		const legacyOptions = (parameters.estados as IDataObject | undefined)?.estado as
+			| IDataObject[]
+			| undefined
 
-		if (parameters.estados) {
-			;((parameters.estados as IDataObject).estado as IDataObject[]).forEach(
-				(estado: IDataObject) => {
-					outputs.push({
-						type: 'main',
-						displayName:
-							estado.outputName == null || estado.outputName === ''
-								? `onOption${estado.key}`
-								: String(estado.outputName),
-					})
-				},
-			)
-		}
+		;(menuOptions ?? legacyOptions ?? []).forEach((option: IDataObject) => {
+			outputs.push({
+				type: 'main',
+				displayName:
+					option.outputName == null || option.outputName === ''
+						? `onOption${option.key}`
+						: String(option.outputName),
+			})
+		})
 
 		outputs.push({
 			type: 'main',

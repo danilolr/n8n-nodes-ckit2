@@ -34,7 +34,7 @@ export const propertiesTransfer: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Departament',
+		displayName: 'Department',
 		name: 'department',
 		type: 'string',
 		default: '',

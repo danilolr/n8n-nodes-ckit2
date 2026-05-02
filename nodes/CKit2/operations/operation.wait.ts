@@ -11,7 +11,7 @@ export const propertiesWait: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'Message text',
-		description: 'Message text to be send',
+		description: 'Message text to send',
 		displayOptions: {
 			show: {
 				operation: ['wait'],

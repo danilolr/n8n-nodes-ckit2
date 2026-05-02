@@ -132,7 +132,7 @@ export class ConversationInfo {
 	}
 
 	addDocMessage(text: string, imageUrl: string) {
-		const message = new MessageData('DOCUMENTO', text, imageUrl)
+		const message = new MessageData('DOCUMENT', text, imageUrl)
 		this.pendingMessages.push(message)
 	}
 
@@ -181,7 +181,7 @@ export class ConversationInfo {
 	}
 
 	addAction(self: IExecuteFunctions, action: IDataObject): void {
-		self.logger.info('Adding action XXX: ' + JSON.stringify(action, null, 2))
+		self.logger.info('Adding action: ' + JSON.stringify(action, null, 2))
 		this.actions.push(action)
 	}
 

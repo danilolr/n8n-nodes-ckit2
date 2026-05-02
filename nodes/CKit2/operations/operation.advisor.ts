@@ -18,7 +18,7 @@ export const propertiesAdvisor: INodeProperties[] = [
 		name: 'advisorPrompt',
 		type: 'string',
 		default: 'You are an advisor ...',
-		description: 'Text to llm prompt',
+		description: 'Text to use as the LLM prompt',
 		displayOptions: {
 			show: {
 				operation: ['advisor'],

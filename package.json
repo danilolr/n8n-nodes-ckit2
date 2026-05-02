@@ -29,6 +29,7 @@
         "dev:prepare": "./scripts/prepare-dev-package.sh",
         "dev": "npm run build && npm run dev:prepare && npm run build:watch",
         "dev:n8n": "./scripts/dev-n8n.sh",
+        "dev:n8n:debug": "N8N_DEBUG_PORT=9240 ./scripts/dev-n8n.sh",
         "lint": "n8n-node lint",
         "lint:fix": "n8n-node lint --fix",
         "release": "n8n-node release",

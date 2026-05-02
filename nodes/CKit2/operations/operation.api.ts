@@ -130,7 +130,7 @@ export async function executeOperationApi(self: IExecuteFunctions): Promise<INod
 			}
 		}
 	} else {
-		self.logger.warn("API parameters SEM PARAMS" + JSON.stringify(parameters))
+		self.logger.warn("API parameters not provided: " + JSON.stringify(parameters))
 	}
 
 	const resp = await callApi(self, apiMethod, params)

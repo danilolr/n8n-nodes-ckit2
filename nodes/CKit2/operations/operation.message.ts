@@ -37,7 +37,7 @@ export const propertiesMessage: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'Message text',
-		description: 'Message text to be send',
+		description: 'Message text to send',
 		displayOptions: {
 			show: {
 				msgType: ['textMessage'],
@@ -62,7 +62,7 @@ export const propertiesMessage: INodeProperties[] = [
 			{
 				name: 'From Binary',
 				value: 'fileBinary',
-				description: 'Get the file from a binary data',
+				description: 'Get the file from binary data',
 			},
 		],
 		default: 'fileUrl',
@@ -74,7 +74,7 @@ export const propertiesMessage: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'File URL',
-		description: 'URL of the file to be send',
+		description: 'URL of the file to send',
 		displayOptions: {
 			show: {
 				fileType: ['fileUrl'],

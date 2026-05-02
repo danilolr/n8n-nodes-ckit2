@@ -4,14 +4,20 @@ import { ConversationInfo } from '../ckit_chatbot_info_memory'
 import { flushInput, MessageTypeEnum, readResponseMessage } from '../callback_utils'
 import { buildStdMessage } from '../ckit_model'
 
+type MenuOption = { key: string; text: string; outputName: string }
+
+type MenuConfig = { option: MenuOption[] }
+
+type LegacyMenuConfig = { estado?: Array<{ key: string; texto?: string; outputName: string }> }
+
 export const propertiesMenu: INodeProperties[] = [
 	{
 		displayName: 'Prompt Menu',
 		name: 'promptMenu',
 		type: 'string',
-		default: 'Selecione uma opção',
+		default: 'Select an option',
 		placeholder: 'Prompt',
-		description: 'Prompt do a ser mostrado para o usuário',
+		description: 'Prompt to show to the user',
 		displayOptions: {
 			show: {
 				operation: ['menu'],
@@ -19,12 +25,12 @@ export const propertiesMenu: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Mensagem Entrada',
-		name: 'mensagemEntrada',
+		displayName: 'Entry Message',
+		name: 'entryMessage',
 		type: 'string',
 		default: '',
-		placeholder: 'Mensagem',
-		description: 'Mensagem a ser mostrada ao entrar no estado',
+		placeholder: 'Message',
+		description: 'Message to show when entering the menu',
 		displayOptions: {
 			show: {
 				operation: ['menu'],
@@ -32,12 +38,12 @@ export const propertiesMenu: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Mensagem Opcão Invalida',
-		name: 'mensagemOpcaoInvalida',
+		displayName: 'Invalid Option Message',
+		name: 'invalidOptionMessage',
 		type: 'string',
-		default: 'Escolha uma opção válida',
-		placeholder: 'Escolha uma opção válida',
-		description: 'Mensagem a ser mostrada quando o usuário escolhe uma opção inválida',
+		default: 'Choose a valid option',
+		placeholder: 'Choose a valid option',
+		description: 'Message to show when the user chooses an invalid option',
 		displayOptions: {
 			show: {
 				operation: ['menu'],
@@ -45,12 +51,12 @@ export const propertiesMenu: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Mensagem Tipo Mensagem Incorreta',
-		name: 'mensagemTipoMensagemIncorreta',
+		displayName: 'Invalid Message Type Message',
+		name: 'invalidMessageTypeMessage',
 		type: 'string',
-		default: 'Você deve digitar uma mensagem com a opcão válida',
-		placeholder: 'Mensagem quando o usuário envia uma mensagem que não é de texto',
-		description: 'Mensagem quando o usuário envia uma mensagem que não é de texto',
+		default: 'Enter a text message with a valid option',
+		placeholder: 'Message to show when the user sends a non-text message',
+		description: 'Message to show when the user sends a non-text message',
 		displayOptions: {
 			show: {
 				operation: ['menu'],
@@ -70,8 +76,8 @@ export const propertiesMenu: INodeProperties[] = [
 		},
 	},
 	{
-		displayName: 'Estados',
-		name: 'estados',
+		displayName: 'Menu Options',
+		name: 'menuOptions',
 		type: 'fixedCollection',
 		typeOptions: {
 			multipleValues: true,
@@ -82,34 +88,34 @@ export const propertiesMenu: INodeProperties[] = [
 				operation: ['menu'],
 			},
 		},
-		default: { estado: [] },
-		placeholder: 'Adicionar opcão menu',
-		description: 'Adiciona opção menu',
+		default: { option: [] },
+		placeholder: 'Add menu option',
+		description: 'Add a menu option',
 		options: [
 			{
-				name: 'estado',
-				displayName: 'Estado',
+				name: 'option',
+				displayName: 'Option',
 				values: [
 					{
 						displayName: 'Key',
 						name: 'key',
 						type: 'string',
 						default: '',
-						description: 'Opção digitada',
+						description: 'Option key entered by the user',
 					},
 					{
-						displayName: 'Texto',
-						name: 'texto',
+						displayName: 'Text',
+						name: 'text',
 						type: 'string',
 						default: '',
-						description: 'Texto do menu (Selecione esta opção para ...)',
+						description: 'Menu option text, for example: Select this option to...',
 					},
 					{
-						displayName: 'Nome Saída',
+						displayName: 'Output Name',
 						name: 'outputName',
 						type: 'string',
 						default: '',
-						description: 'Nome da saída',
+						description: 'Name of the output branch',
 					},
 				],
 			},
@@ -119,19 +125,19 @@ export const propertiesMenu: INodeProperties[] = [
 
 export async function executeOperationMenu(self: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 	self.logger.warn("CKitGeneric: execute MENU operation");
-	const menuConfig = self.getNodeParameter('estados', 0, { estado: [] }) as { estado: Array<{ key: string; texto: string; outputName: string }> };
+	const menuConfig = getMenuConfig(self);
 
-	self.logger.info("CKitMenu execute PATH enter")
+	self.logger.info("CKitMenu execution started")
 	const useNativeMenu = self.getNodeParameter('useNativeMenu', 0, '')
-	const onInputMessage = self.getNodeParameter('mensagemEntrada', 0, '') as string
+	const onInputMessage = getStringNodeParameter(self, 'entryMessage', 'mensagemEntrada')
 	const promptMenu = self.getNodeParameter('promptMenu', 0, '') as string
 	let textoStart = onInputMessage != "" && onInputMessage != null ? onInputMessage + "\n\n" : ""
 
 	const onOptions: INodeExecutionData[][] = []
 	const onNone: INodeExecutionData[] = []
-	menuConfig.estado.forEach((estadoEntry: { key: string; texto: string; outputName: string }) => {
+	menuConfig.option.forEach((optionEntry: MenuOption) => {
 		onOptions.push([])
-		textoStart = textoStart + "\n" + estadoEntry.key + " - " + estadoEntry.texto
+		textoStart = textoStart + "\n" + optionEntry.key + " - " + optionEntry.text
 	})
 	textoStart = textoStart + "\n\n" + promptMenu
 
@@ -145,46 +151,46 @@ export async function executeOperationMenu(self: IExecuteFunctions): Promise<INo
 			promptMenu: promptMenu,
 		} as IDataObject
 		if (onInputMessage != null && onInputMessage != "") {
-			nativeMenuMessage.mensagemEntrada = onInputMessage
+			nativeMenuMessage.entryMessage = onInputMessage
 		}
-		menuConfig.estado.forEach((estadoEntry: { key: string; texto: string; outputName: string }) => {
+		menuConfig.option.forEach((optionEntry: MenuOption) => {
 			onOptions.push([]);
-			(nativeMenuMessage['menu'] as IDataObject[]).push({ opcao: estadoEntry.key, texto: estadoEntry.texto })
+			(nativeMenuMessage['menu'] as IDataObject[]).push({ option: optionEntry.key, text: optionEntry.text })
 		})
 		conversation?.addMenuMessage(nativeMenuMessage)
-		self.logger.info("MENU_NATIVO: " + JSON.stringify(nativeMenuMessage))
+		self.logger.info("Native menu message: " + JSON.stringify(nativeMenuMessage))
 	}
 
 	const mr = await getMenuResponse(self, menuConfig)
 
-	self.logger.info("FINALIZADA EXECUCAO AtendimentoEstadoMenuNode " + onOptions.length + " " + onNone.length)
+	self.logger.info("Menu operation finished with output counts: " + onOptions.length + " " + onNone.length)
 	return [
 		...mr.onOptions,
 		self.helpers.returnJsonArray(mr.onNone),
 	];
 }
 
-async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Array<{ key: string; texto: string; outputName: string }> }): Promise<{ onOptions: INodeExecutionData[][], onNone: INodeExecutionData[] }> {
+async function getMenuResponse(self: IExecuteFunctions, menuConfig: MenuConfig): Promise<{ onOptions: INodeExecutionData[][], onNone: INodeExecutionData[] }> {
 	const userResponse = await readResponseMessage(self)
 	self.logger.error("User menu answer: " + JSON.stringify(userResponse))
 	const onOptions: INodeExecutionData[][] = []
 	let onNone: INodeExecutionData[] = []
 	if (userResponse.msgType != MessageTypeEnum.TEXT) {
-		const mensagemTipoMensagemIncorreta = self.getNodeParameter('mensagemTipoMensagemIncorreta', 0, 'Choose a menu option') as string
+		const invalidMessageTypeMessage = getStringNodeParameter(self, 'invalidMessageTypeMessage', 'mensagemTipoMensagemIncorreta', 'Choose a menu option')
 		const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
-		conversation?.addTextMessage(mensagemTipoMensagemIncorreta)
+		conversation?.addTextMessage(invalidMessageTypeMessage)
 		flushInput(self)
 		return await getMenuResponse(self, menuConfig)
 	}
 	self.logger.error(JSON.stringify(userResponse))
 	const resposta = userResponse.text
-	self.logger.info("OPCAO :" + resposta)
+	self.logger.info("Selected menu option: " + resposta)
 	let p = 0
 	let valida = false
-	menuConfig.estado.forEach((estadoEntry: { key: string; texto: string; outputName: string }) => {
+	menuConfig.option.forEach((optionEntry: MenuOption) => {
 		onOptions.push([])
-		self.logger.info("ESTADO :" + JSON.stringify(estadoEntry))
-		if (estadoEntry.key == resposta) {
+		self.logger.info("Menu option: " + JSON.stringify(optionEntry))
+		if (optionEntry.key == resposta) {
 			// onOptions[p] = buildNodeResponse(self, "optionSelected", {})
 			const onOut = [{
 				json: buildStdMessage(self, "executeChatbot").toJson()
@@ -195,25 +201,25 @@ async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Ar
 			// 	json: stdMsg.toJson()
 			// }]
 
-			self.logger.info("OPCAO ENCONTRADA :" + p + " " + JSON.stringify(onOptions[p]))
+			self.logger.info("Matching menu option found: " + p + " " + JSON.stringify(onOptions[p]))
 			valida = true
 		}
 		p++
 	})
-	self.logger.info("OPCAO VALIDA :" + valida)
+	self.logger.info("Menu option is valid: " + valida)
 	if (!valida) {
-		const mensagemOpcaoInvalida = self.getNodeParameter('mensagemOpcaoInvalida', 0, '') as string
-		if (mensagemOpcaoInvalida == null || mensagemOpcaoInvalida == "") {
+		const invalidOptionMessage = getStringNodeParameter(self, 'invalidOptionMessage', 'mensagemOpcaoInvalida')
+		if (invalidOptionMessage == null || invalidOptionMessage == "") {
 			onNone = [{
 				json: {
 					"ok": false,
-					"response": "Opção inválida"
+					"response": "Invalid option"
 				}
 			}]
 			return { onOptions: onOptions, onNone: onNone }
 		} else {
 			const conversation = CKitMemoryService.getExecutionMemory(self).read("conversation") as ConversationInfo
-			conversation?.addTextMessage(mensagemOpcaoInvalida)
+			conversation?.addTextMessage(invalidOptionMessage)
 			await flushInput(self)
 			return await getMenuResponse(self, menuConfig)
 		}
@@ -222,3 +228,32 @@ async function getMenuResponse(self: IExecuteFunctions, menuConfig: { estado: Ar
 	}
 }
 
+function getMenuConfig(self: IExecuteFunctions): MenuConfig {
+	const menuConfig = self.getNodeParameter('menuOptions', 0, undefined) as MenuConfig | undefined
+	if (menuConfig?.option) {
+		return menuConfig
+	}
+
+	const legacyConfig = self.getNodeParameter('estados', 0, { estado: [] }) as LegacyMenuConfig
+	return {
+		option: (legacyConfig.estado ?? []).map((option) => ({
+			key: option.key,
+			text: option.texto ?? '',
+			outputName: option.outputName,
+		})),
+	}
+}
+
+function getStringNodeParameter(
+	self: IExecuteFunctions,
+	name: string,
+	legacyName: string,
+	defaultValue = '',
+): string {
+	const value = self.getNodeParameter(name, 0, undefined) as string | undefined
+	if (value !== undefined) {
+		return value
+	}
+
+	return self.getNodeParameter(legacyName, 0, defaultValue) as string
+}

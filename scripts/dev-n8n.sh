@@ -26,4 +26,8 @@ if [ "${INSTALLED_VERSION}" != "${N8N_VERSION}" ]; then
 fi
 
 cd "${RUNNER_DIR}"
-N8N_DEV_RELOAD=true N8N_USER_FOLDER="${USER_FOLDER}" ./node_modules/.bin/n8n start
+if [ -n "${N8N_DEBUG_PORT:-}" ]; then
+	N8N_DEV_RELOAD=true N8N_USER_FOLDER="${USER_FOLDER}" node "--inspect=${N8N_DEBUG_PORT}" ./node_modules/n8n/bin/n8n start
+else
+	N8N_DEV_RELOAD=true N8N_USER_FOLDER="${USER_FOLDER}" ./node_modules/.bin/n8n start
+fi

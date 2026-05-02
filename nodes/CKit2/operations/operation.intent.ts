@@ -5,8 +5,8 @@ export const propertiesIntent: INodeProperties[] = [
 		displayName: 'Explanation',
 		name: 'intentExplanation',
 		type: 'string',
-		default: 'Show then the user ',
-		description: 'Text to llm prompt',
+		default: 'Show the user ',
+		description: 'Text to use as the LLM prompt',
 		displayOptions: {
 			show: {
 				operation: ['intent'],

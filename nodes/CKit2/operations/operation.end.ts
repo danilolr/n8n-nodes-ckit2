@@ -10,7 +10,7 @@ export const propertiesEnd: INodeProperties[] = [
 		type: 'string',
 		default: '',
 		placeholder: 'Bye message text',
-		description: 'Bye message to be send',
+		description: 'Bye message to send',
 		displayOptions: {
 			show: {
 				operation: ['end'],
